@@ -1,0 +1,258 @@
+<!DOCTYPE html>
+<html lang="fr"><head><meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Quiz Spécialité v2</title>
+<style>
+:root{--bg:#eef2f6;--card:#fff;--ink:#14213d;--mute:#5b6779;--line:#d5dce6;--acc:#2b59c3;--ok:#1b7f4b;--okb:#e1f4ea;--ko:#b3261e;--kob:#fbe6e4}
+@media(prefers-color-scheme:dark){:root{--bg:#10151d;--card:#19212d;--ink:#e8edf5;--mute:#9aa7ba;--line:#2b3647;--acc:#7da2ff;--ok:#5fd596;--okb:#14301f;--ko:#ff8a80;--kob:#3a1a18}}
+*{box-sizing:border-box}html,body{margin:0}
+body{background:var(--bg);color:var(--ink);font:17px/1.5 Georgia,serif;padding:max(16px,env(safe-area-inset-top)) 16px max(24px,env(safe-area-inset-bottom))}
+main{max-width:640px;margin:0 auto}h1{font-size:26px;margin:8px 0 4px}
+p.s{color:var(--mute);margin:0 0 16px;font:15px system-ui,sans-serif}
+.card{background:var(--card);border:1px solid var(--line);border-radius:10px;padding:16px;margin-bottom:14px}
+button{font:16px system-ui,sans-serif;color:var(--ink);background:var(--card);border:1px solid var(--line);border-radius:8px;padding:12px 14px;width:100%;text-align:left;margin:0 0 8px;cursor:pointer}
+button:focus-visible,select:focus-visible{outline:3px solid var(--acc);outline-offset:2px}
+button.p{background:var(--acc);color:#fff;border-color:var(--acc);text-align:center;font-weight:600}
+button.sel{border-color:var(--acc);box-shadow:inset 0 0 0 2px var(--acc)}
+button.ok{background:var(--okb);border-color:var(--ok)}button.ko{background:var(--kob);border-color:var(--ko)}
+.bar{height:6px;background:var(--line);border-radius:3px;margin:6px 0 14px}.bar i{display:block;height:100%;background:var(--acc);border-radius:3px}
+.meta{font:14px system-ui,sans-serif;color:var(--mute);margin:2px 0 6px}
+.q{font-size:19px;margin:6px 0 12px}
+.ex{border-left:4px solid var(--acc);padding:4px 12px;margin:10px 0 14px;font:15px system-ui,sans-serif}
+.big{font-size:44px;font-weight:700;margin:4px 0}
+.err{font:15px system-ui,sans-serif;border-top:1px solid var(--line);padding:10px 0}
+select{font:16px system-ui,sans-serif;padding:10px;border-radius:8px;border:1px solid var(--line);background:var(--card);color:var(--ink);width:100%;margin-bottom:12px}
+</style></head><body><main id="app"></main>
+<script>
+const Q=[],X="Aucune réponse";
+const T={C:"Formules et méthode",N:"Calculs d'épreuves",I:"International",D:"Distribution",S:"Stratégie et études"};
+const K={u:"QCU",m:"QCM (plusieurs réponses)",v:"Vrai / Faux",c:"Choisir la formule",f:"Formule à compléter",e:"Repérer l'erreur"};
+const u=(t,s,q,o,i,e)=>Q.push({k:"u",t,s,q,o,a:[i],e});
+const m=(t,s,q,o,a,e)=>Q.push({k:"m",t,s,q,o,a,e});
+const v=(t,s,q,b,e)=>Q.push({k:"v",t,s,q,o:["Vrai","Faux"],a:[b?0:1],e});
+const pm=a=>a.length<2?[a]:a.flatMap((x,i)=>pm([...a.slice(0,i),...a.slice(i+1)]).map(r=>[x,...r]));
+const sh=(o,i)=>{const f=/^Aucune/.test(o[o.length-1])?1:0,d=o.map((_,k)=>k).slice(0,o.length-f);for(let j=d.length-1;j>0;j--){const r=Math.random()*(j+1)|0;[d[j],d[r]]=[d[r],d[j]]}if(f)d.push(o.length-1);return[d.map(k=>o[k]),d.indexOf(i)]};
+const fc=(s,q,o,i,e)=>{const[p,j]=sh(o,i);Q.push({k:"u",y:"c",t:"C",s,q,o:p,a:[j],e})};
+const er=(s,q,o,i,e)=>{const[p,j]=sh(o,i);Q.push({k:"u",y:"e",t:"C",s,q,o:p,a:[j],e})};
+const fm=(s,q,tpl,o,alts,e)=>Q.push({k:"f",y:"f",t:"C",s,q,tpl,o,alts,e});
+
+/* ===== CALCULS ===== */
+const R="Vente : 800 × 2 500 F ; rabais 10 %, remise 5 %, ristourne 3 %, escompte 2 % (sous huitaine). ";
+u("N","TD5 HECM D5",R+"La remise obtenue est de :",["100 000 F","95 000 F","90 000 F",X],2,"Après rabais : 1 800 000 ; 5 % = 90 000.");
+u("N","TD5 HECM D5",R+"Paiement après 4 jours : taux unique de réduction ?",["17,06 %","18,72 %","20 %",X],1,"(341 300 + 33 174) / 2 000 000.");
+u("N","TD5 HECM D5",R+"L'escompte obtenu est de :",["40 000","35 000","33 174",X],2,"2 % de 1 658 700. Ce n'est pas « aucune réponse ».");
+u("N","TD5 HECM D5",R+"Montant total des réductions commerciales :",["341 300","360 000","381 300",X],0,"Rabais 200 000 + remise 90 000 + ristourne 51 300.");
+u("N","TD5 HECM D5",R+"Montant total des réductions financières :",["341 300","374 474","393 474",X],3,"Seul l'escompte est financier : 33 174.");
+m("N","TD5 HECM D5","Quelles sont des réductions commerciales ?",["Rabais","Remise","Ristourne","Escompte"],[0,1,2],"L'escompte est une réduction financière.");
+u("N","TD5 HECM D6","Clientèle de 9 000 ; confiance 95 % (z = 1,96) ; marge d'erreur 8 % ; p = 30 %. Taille de l'échantillon :",["9 000","2 700","3 000",X],3,"n = z²·p·q / e² = 3,8416 × 0,21 / 0,0064 ≈ 126.");
+u("N","TD5 HECM D6","Population de 50 000. L'avant-dernier tiré est le 49 850e, le dernier le 49 950e. La taille n est :",["100","500","800",X],1,"Pas = 100 = N / n.");
+u("N","TD5 HECM D6","1 département sur 12, puis 1 commune, 2 arrondissements, 3 quartiers, 8 étudiants par quartier. Taille de l'échantillon :",["96","48","100",X],1,"1 × 1 × 2 × 3 × 8.");
+u("N","TD5 HECM D6","N = 50 000 ; n = 10 000. Taille corrigée :",["8 700","8 000","8 333,33",X],2,"n' = nN / (n + N).");
+u("N","TD5 Galaxy Ex2","Étudiants de Cotonou (19 500), consommateurs par université (ENEAM 6 000 à 70 %, UPIB 1 000 à 50 %, etc.). Marché actuel de la profession :",["9 575","19 500","4 508",X],0,"4 200 + 500 + 200 + 400 + 250 + 825 + 1 625 + 1 350 + 225.");
+u("N","TD5 Galaxy Ex2","Ayéyèmi vend 150 000 L/an ; un étudiant boit 1/8 L/jour pendant 250 jours. Marché actuel de l'entreprise :",["4 780","4 800","4 567",X],1,"1/8 × 250 = 31,25 L ; 150 000 / 31,25.");
+u("N","TD5 Galaxy Ex2","Marché actuel de la concurrence :",["4 775","9 567","4 800",X],0,"9 575 − 4 800.");
+u("N","TD5 Galaxy Ex2","Un étudiant sur 5 est susceptible de consommer sans l'avoir encore fait. Non consommateurs relatifs :",["3 547","2 345","3 900",X],2,"19 500 / 5.");
+u("N","TD5 Galaxy Ex2","Non consommateurs absolus :",["6 025","9 700","4 850",X],0,"19 500 − 9 575 − 3 900.");
+u("N","TD5 Galaxy Ex2","Marché potentiel = 9 575 + 3 900 = 13 475. Taux de pénétration d'Ayéyèmi :",["32 %","35,62 %","65,8 %",X],1,"4 800 / 13 475.");
+u("N","TD5 Galaxy Ex2","Même marché potentiel. Taux de saturation du marché :",["32 %","35,62 %","65,8 %",X],3,"9 575 / 13 475 = 71,06 %. Le 35,62 % est la pénétration.");
+u("N","TD5 Galaxy Ex2","Bouteille de 125 ml à 100 F. Chiffre d'affaires 1990 d'Ayéyèmi :",["8 666 555","56 787 987","345 005 676",X],3,"150 000 L / 0,125 L = 1 200 000 bouteilles × 100 = 120 000 000 F.");
+u("N","TD5 Galaxy Ex2","CA 1990 = 120 M. Baisses de 4 % et 8 %, puis hausses de 17 %, 13 %, 20 %. CA 1995 :",["12 000 000","13 456 766","23 456 766",X],3,"120 M × 0,96 × 0,92 × 1,17 × 1,13 × 1,20 ≈ 168 145 736.");
+const P="Prix 8 000 / 9 000 / 10 000 / 11 000 / 12 000 / 13 000. « Trop cher » : 0, 0, 20, 26, 35, 19. « Mauvaise qualité » : 25, 45, 22, 8, 0, 0. ";
+u("N","TD5 Galaxy Ex3",P+"Le prix psychologique est :",["8 000","9 000","10 000","11 000","12 000"],2,"Refus cumulés par prix : 100, 75, 50, 54, 81, 100. Minimum à 10 000.");
+u("N","TD5 Galaxy Ex3",P+"On pratique le prix suivant le prix psychologique. L'élasticité de la demande est :",["E = −0,8","E = 0,1","E = 0,08","E = −0,7","E = 0,78"],0,"Acheteurs 50 → 46 (−8 %) pour un prix +10 % : E = −0,8.");
+u("N","TD5 Galaxy Ex3",P+"Le prix qui maximise le chiffre d'affaires est :",["8 000","9 000","10 000","11 000","12 000"],3,"10 000 × 50 = 500 000 ; 11 000 × 46 = 506 000.");
+
+/* ===== FORMULES ET METHODE ===== */
+const MAE="Marché actuel de l'entreprise",MAC="Marché actuel de la concurrence",MAP="Marché actuel de la profession",NCR="Non consommateurs relatifs",NCA="Non consommateurs absolus",MP="Marché potentiel",MT="Marché total";
+const L="Complète la formule.";
+fm("Marchés",L,"Marché actuel de la profession = {} + {}",[MAE,MAC,NCR,NCA],[[0,1],[1,0]]);
+fm("Marchés",L,"Marché potentiel = {} + {}",[MAP,NCR,NCA,MT],[[0,1],[1,0]]);
+fm("Marchés",L,"Marché total = {} + {}",[MP,NCA,NCR,MAE],[[0,1],[1,0]]);
+fm("Marchés",L,"Taux de pénétration = {} / {} × 100",[MAE,MP,MAP,"CA du principal concurrent"],[[0,1]]);
+fm("Marchés",L,"Taux de saturation = {} / {} × 100",[MAP,MP,MAE,MT],[[0,1]]);
+fm("Marchés",L,"Part de marché relative = {} / {}",["CA de l'entreprise","CA du principal concurrent","CA total du marché",MP],[[0,1]]);
+fm("Marchés",L,"Taux de croissance = ({} − {}) / {} × 100",["CA de l'année n","CA de l'année n−1","CA moyen","PMR"],[[0,1,1]]);
+fm("Échantillon",L,"n = {} × {} × {} / {}",["z²","p","q = 1 − p","e²","N"],pm([0,1,2]).map(a=>[...a,3]));
+fm("Échantillon",L,"Taille corrigée n' = {} × {} / ({} + {})",["n (échantillon)","N (population)","z²","q"],[[0,1,0,1],[1,0,0,1],[0,1,1,0],[1,0,1,0]]);
+fm("Échantillon",L,"Pas du tirage systématique = {} / {}",["N (population)","n (échantillon)","z²","p"],[[0,1]]);
+fm("Réductions",L,"Taux unique de réduction = ({} + {}) / {} × 100",["Somme des réductions commerciales","Escompte","Montant brut (Q × PU)","Net commercial"],[[0,1,2],[1,0,2]]);
+fm("Prix",L,"Taux de marque = {} / {} × 100",["Marge bénéficiaire","Prix de vente","Prix d'achat","Coût de revient"],[[0,1]]);
+fm("International",L,"Taux de prime = {} / {} × 100",["Montant de la prime","Valeur assurée","Valeur FOB","Fret"],[[0,1]]);
+fm("International",L,"CIF = {} + {} + {}",["Valeur FOB","Fret","Assurance","Rabais"],pm([0,1,2]));
+fm("Distribution",L,"DN = {} / {} × 100",["Nombre de points de vente qui vendent le produit","Nombre total de points de vente","CA du produit","CA total des points de vente"],[[0,1]]);
+fm("Distribution",L,"DV = {} / {} × 100",["CA des points de vente qui vendent le produit","CA total de tous les points de vente","Nombre de points de vente","Quantité vendue"],[[0,1]]);
+fm("Zone de chalandise",L,"Marché potentiel de la zone = {} − {} + {}",["Dépenses non alimentaires","Évasion","Attraction","Revenu global"],[[0,1,2]]);
+fm("Zone de chalandise",L,"CA prévisionnel = {} × {}",["Marché potentiel","Taux de pénétration","Évasion","Attraction"],[[0,1],[1,0]]);
+fm("Médiaplanning",L,"Taux d'affinité = {} / {} × 100",["Audience utile (AU)","Audience totale (AT)","Coût (CP)","Nombre de supports"],[[0,1]]);
+fm("Médiaplanning",L,"CMCU = {} / {} × 1 000",["Coût (CP)","Audience utile (AU)","Audience totale (AT)","Taux d'affinité"],[[0,1]]);
+const A="MAE = marché actuel de l'entreprise ; MAP = marché actuel de la profession ; MP = marché potentiel. ";
+fc("Marchés",A+"Le taux de pénétration est :",["MAE / MP × 100","MAP / MP × 100","MAE / MAP × 100","CA entreprise / CA concurrent"],0);
+fc("Marchés",A+"Le taux de saturation est :",["MAP / MP × 100","MAE / MP × 100","MP / MAP × 100","MAE / MAP × 100"],0);
+fc("Marchés","La part de marché relative est :",["CA entreprise / CA du principal concurrent","CA du principal concurrent / CA entreprise","CA entreprise / CA total du marché","MAE / MP"],0);
+fc("Marchés","Le taux de croissance est :",["(CAn − CAn−1) / CAn−1 × 100","(CAn − CAn−1) / CAn × 100","CAn / CAn−1 × 100","(CAn − CAn−1) × 100"],0);
+fc("Échantillon","La taille d'un échantillon (z, p, q, e) est :",["n = z² × p × q / e²","n = z × p × q / e²","n = z² × p × q / e","n = z² × (p + q) / e²"],0);
+fc("Échantillon","La taille corrigée de l'échantillon est :",["n × N / (n + N)","n + N / (n × N)","(n − N) / (n + N)","n × N / (N − n)"],0);
+fc("Prix","Le taux de marque est :",["Marge / prix de vente","Marge / prix d'achat","Prix de vente / prix d'achat","Marge / coût de revient"],0);
+fc("Réductions","Le taux unique de réduction est :",["(réductions commerciales + escompte) / montant brut × 100","(réductions commerciales + escompte) / net commercial × 100","Escompte / montant brut × 100","Réductions commerciales / net commercial × 100"],0);
+fc("Réductions","Rabais, puis remise, puis ristourne. La remise se calcule sur :",["Le montant brut","Le net après rabais","Le net commercial final","Le prix d'achat"],1);
+fc("Réductions","L'escompte se calcule sur :",["Le montant brut","Le net après rabais","Le net commercial (après rabais, remise et ristourne)","La remise"],2);
+fc("Distribution","La distribution numérique (DN) est :",["Points de vente qui vendent le produit / total des points de vente × 100","CA du produit / CA total × 100","Points de vente / CA total","Quantité vendue / nombre de points de vente"],0);
+fc("Médiaplanning","Le coût pour mille contacts utiles (CMCU) est :",["Coût / audience utile × 1 000","Audience utile / coût × 1 000","Coût / audience totale × 100","Audience utile / audience totale × 100"],0);
+fc("Zone de chalandise","Le marché potentiel d'une zone de chalandise est :",["Dépenses non alimentaires − évasion + attraction","Dépenses non alimentaires + évasion − attraction","Dépenses de consommation − évasion + attraction","Revenu global − évasion + attraction"],0);
+fc("International","Le CIF est :",["FOB + fret + assurance","FAS + fret","FOB + assurance","FOB − fret + assurance"],0);
+er("TD Riz","Riz : MAP = 78 750 000 ; MP = 105 000 000 ; les non consommateurs absolus (NCA) valent 1/3 du marché actuel. Quelle ligne est fausse ?",["NCA = MAP × 1/3","NCA = 78 750 000 / 3 = 2 625 000","MT = MP + NCA","Aucune ligne n'est fausse"],1,"78 750 000 / 3 = 26 250 000, donc MT = 131 250 000.");
+er("TD8 CMAF","Dépenses non alimentaires : 13 819 680 000. Achats dans les pays voisins : 15 % ; achats par les pays voisins : 20 %. Un étudiant écrit « Évasion = 13 819 680 000 × 20 % = 2 763 936 000 ». Quelle est l'erreur ?",["Le taux : l'évasion est à 15 %, l'attraction à 20 %","La base : il faut prendre le revenu global","Il faut diviser et non multiplier","Aucune erreur"],0,"Évasion = 2 072 952 000 ; attraction = 2 763 936 000.");
+er("TD2 D3","« Taux de prime = 30 000 000 / 450 000 = 66,66, soit 0,66 % ». Quelle est l'erreur ?",["La fraction est inversée : prime / valeur assurée × 100","Il faut multiplier par 100 au lieu de diviser","Il faut utiliser la valeur FOB","Aucune erreur"],0,"450 000 / 30 000 000 × 100 = 1,5 %.");
+er("TD5 HECM D5","Vente 800 × 2 500, rabais 10 %. « Remise 5 % = 2 000 000 × 5 % = 100 000 ». Quelle est l'erreur ?",["La remise se calcule sur le net après rabais (1 800 000)","Le taux de la remise est 10 %","Il faut ajouter l'escompte","Aucune erreur"],0,"1 800 000 × 5 % = 90 000.");
+er("TD5 HECM D5","« L'escompte de 2 % se calcule sur le montant brut : 2 000 000 × 2 % = 40 000 ». Quelle est l'erreur ?",["La base est le net commercial (1 658 700) : escompte = 33 174","Le taux est de 3 %","L'escompte est une réduction commerciale","Aucune erreur"],0);
+er("TD8 CMAF","Marché potentiel 14 510 664 000 ; pénétration 25 %. « CAP = 3 627 666 000, arrondi à la dizaine de milliers inférieure : 3 627 600 000 ». Quelle est l'erreur ?",["On a arrondi à la centaine de milliers : il faut 3 627 660 000","Il fallait multiplier par 0,025","Il fallait arrondir au supérieur","Aucune erreur"],0);
+er("TD5 Galaxy Ex2","« Taux de saturation = MAE / MP = 4 800 / 13 475 = 35,62 % ». Quelle est l'erreur ?",["Il faut le marché actuel de la profession : 9 575 / 13 475 = 71,06 %","Il faut diviser par le marché total","Il faut diviser par le CA","Aucune erreur"],0,"35,62 % est le taux de pénétration.");
+er("TD Kdi","« Produit A : TC = (230 − 200) / 230 × 100 = 13 % ». Quelle est l'erreur ?",["Le dénominateur doit être l'année précédente (200) : TC = 15 %","Il faut diviser par 288","Il faut multiplier par 1 000","Aucune erreur"],0);
+er("TD Riz","CA de l'entreprise 42 M ; CA du principal concurrent 33,6 M. « PMR = 33,6 / 42 = 0,80 ». Quelle est l'erreur ?",["Le rapport est inversé : PMR = 42 / 33,6 = 1,25","Il fallait prendre le marché potentiel","Il fallait ajouter les deux CA","Aucune erreur"],0);
+er("TD8 D2","« DV = 40 % est inférieure à DN = 60 %, donc la boîte de NIDO est surtout vendue par les gros points de vente ». Quelle est l'erreur ?",["Elle est surtout vendue par les petits commerçants","DV doit être supérieure à DN","DN et DV ne se comparent pas","Aucune erreur"],0);
+er("TD5 HECM D1","« Coût de revient 1 000 F ; taux de marque 25 % ; PV = 1 000 × 1,25 = 1 250 ». Quelle est l'erreur ?",["Le taux de marque porte sur le prix de vente : PV = 1 000 / 0,75 ≈ 1 333,33","Il faut soustraire 25 %","Il faut diviser par 1,25","Aucune erreur"],0);
+er("TD5 HECM D6","« n = 1,96 × 0,3 × 0,7 / 0,08² ≈ 64 ». Quelle est l'erreur ?",["z n'est pas élevé au carré : n = 1,96² × 0,3 × 0,7 / 0,08² ≈ 126","e ne doit pas être au carré","q doit valoir 0,3","Aucune erreur"],0);
+
+/* ===== INTERNATIONAL ===== */
+u("I","TD2 D1","Les 3 grandes phases pour aborder un marché étranger :",["Préparer les ventes, études préalables, réaliser les ventes","Études préalables, préparer les ventes, réaliser les ventes à l'étranger","Études préalables, réaliser les ventes, préparer les ventes",X],1);
+u("I","TD2 D1","Adapter son produit aux normes d'un pays est :",["L'adaptation stratégique","L'adaptation obligatoire","L'adaptation aux besoins des consommateurs",X],1);
+u("I","TD2 D1","Facteurs intervenant dans l'élaboration d'un prix de vente à l'export :",["L'objectif de prix de l'entreprise et l'estimation des coûts","L'évaluation du marché","Toutes les réponses",X],2);
+u("I","TD2 D1","Le coût de revient export correspond :",["Au coût export majoré des charges export","Au coût import majoré des charges import","Au coût de production dans le pays de l'exportateur, majoré des charges spécifiques à l'export",X],2);
+u("I","TD2 D2","La sous-traitance de la fonction export d'une société de commerce extérieur :",["Représenter une société internationale dans votre pays","Vendre à une société étrangère","Confier les opérations export à une société de gestion export, un courtier ou un commissionnaire exportateur",X],2);
+u("I","TD2 D2","La franchise est :",["Un contrat où l'entreprise concède à des détaillants indépendants, contre redevance, le droit d'utiliser sa marque ou son enseigne","Un contrat de vente de produits à une autre entreprise","Un contrat de sous-traitance",X],0);
+u("I","TD2 D2","Le contrat de gestion :",["Est une exportation directe","Consiste à apporter ses compétences de gestion à une entreprise étrangère","Est une association avec des partenaires locaux (propriété et contrôle partagés)",X],1);
+u("I","TD2 D3","Garanties des sociétés d'assurance des actions à l'export :",["Assurance-crédit, risque économique, change","Investissement, prospection, foire","Toutes les réponses",X],2);
+u("I","TD2 D3","Le dédommagement est assujetti à :",["La protection de la valeur de la marchandise et du souscripteur","La matérialisation du risque (dommage ou préjudice) et à la couverture de l'assuré","La couverture de l'assuré et du souscripteur",X],1);
+u("I","TD2 D3","Les polices d'assurance à l'international :",["À alimenter, quantum déterminé, durée indéterminée","Au voyage, à alimenter, d'abonnement, tiers chargeur","D'abonnement, quantum indéterminé, durée déterminée",X],1);
+u("I","TD2 D3","L'assurance sur corps est :",["Souscrite par le propriétaire de la marchandise","Souscrite contre les dommages touchant le corps des individus","Souscrite par le propriétaire du navire pour couvrir le navire",X],2);
+u("N","TD2 D3","Valeur assurée 30 000 000 F ; prime 450 000 F. Taux de prime :",["1 %","2 %","2,5 %",X],3,"450 000 / 30 000 000 = 1,5 %.");
+u("I","TD2 D4","L'expédition FCL/FCL signifie :",["Conteneur plein au départ, dépoté à destination","Conteneur plein au départ et plein à l'arrivée","Conteneur empoté par plusieurs fournisseurs pour un seul destinataire",X],1);
+u("I","TD2 D4","Le fret de base se calcule par l'unité payante, toujours :",["À l'avantage du client","À l'avantage du navire","Toutes les réponses",X],1);
+u("N","TD2 D4","Tarif 85 000 F la tonne ou le m³ ; colis de 37 t et 20 m³. Fret de base :",["3 145 000 F","1 700 000 F","Toutes les réponses",X],0,"37 × 85 000 : on retient l'unité la plus élevée.");
+u("I","TD2 D5","Remise documentaire : laquelle de ces définitions est la bonne ?",["Engagement écrit conditionnel de paiement donné par une banque","Règlement de plusieurs opérations sans credoc différent pour chacune","Avance de la banque notificatrice avant la remise des documents",X],3,"a = crédit documentaire ; b = credoc revolving ; c = clause rouge.");
+u("I","TD2 D5","Instrument de paiement complexe, très administratif et coûteux :",["Crédit documentaire révocable","Remise documentaire","Lettre de change","Crédit documentaire irrévocable et confirmé"],3);
+u("I","TD2 D5","Le choix d'une procédure d'encaissement dépend surtout :",["De la distance géographique","De la réglementation du pays de l'exportateur","Des risques d'impayés encourus ou estimés par l'exportateur",X],2);
+u("I","TD2 D6","Les TCI (Incoterms) à l'arrivée :",["EXW, FCA, CPT","EXW, FCA, CPT, CIP","DAT, DAP, DDP",X],2);
+u("I","TD2 D6","Lequel prend en compte les frais d'acheminement principal ?",["EXW","FOB","CFR",X],2);
+u("I","TD2 D6","Obligation maximale pour le vendeur :",["EXW","FOB","DDP",X],2);
+u("I","TD2 D6","Frais de post-acheminement pris en compte par :",["EXW et FOB","CIF et DAT","DAP et DDP",X],2);
+m("I","TD2 D6","Quels TCI sont multimodaux ?",["EXW","FCA","CPT","CIP","DAT","DAP","DDP","FAS","FOB","CFR","CIF"],[0,1,2,3,4,5,6]);
+u("N","TD2 D6","FAS 20 000 000 ; acconage 50 000 ; 40 m³ et 35 t ; 20 000 F/m³ ou 24 000 F/t ; assurance 150 000. CIF :",["22 000 000","21 000 000","20 040 000",X],3,"Fret : max(800 000 ; 840 000) = 840 000. CIF = 21 040 000.");
+
+/* ===== DISTRIBUTION ===== */
+u("D","TD5 HECM D2","L'appareil commercial est :",["Un ensemble de mesures techniques, économiques et sociales pour harmoniser les ensembles commerciaux","L'ensemble des moyens matériels et humains permettant au commerce d'exercer sa fonction qui est la distribution","Un appareil électro-commercial",X],1);
+u("D","TD5 HECM D2","Le centre commercial est :",["Une formule de regroupement de petits commerçants autour d'un hypermarché ou d'un supermarché","Un supermarché","Un hypermarché",X],0);
+u("D","TD5 HECM D2","Une zone piétonnière commerciale :",["Où passent des piétons, sans installations commerciales","Un endroit réservé aux piétons","Des rues réservées aux piétons mais qui ont des installations commerciales",X],2);
+u("D","TD5 HECM D3","Les formes de commerce sont :",["Commerce électronique, international et en vente libre","Commerce en gros, en détail et par association","Commerce indépendant, associé et intégré",X],2);
+u("D","TD5 HECM D3","Le commerce indépendant regroupe :",["Le commerce établi en s'associant avec d'autres commerçants","Le commerce en gros et le commerce en détail","L'exercice à la fois du gros et du détail",X],1);
+m("D","TD5 HECM D3","Le commerce associé comprend :",["Chaîne volontaire","Groupement","Franchise","Magasin populaire","Société à succursales multiples"],[0,1,2]);
+m("D","TD5 HECM D3","Le commerce intégré de type capitaliste regroupe :",["Magasin populaire","Magasin à mini-marges","Vente automatique","Société à succursales multiples","Vente à domicile","Chaîne volontaire","Franchise"],[0,1,2,3,4]);
+u("D","TD5 HECM D4","Le merchandising est :",["Des études et techniques pour améliorer l'implantation du point de vente","Des études et techniques pour améliorer la présentation des produits","Des études et techniques pour améliorer l'implantation et la présentation des produits, afin d'accroître les ventes et la rentabilité",X],2);
+u("D","TD5 HECM D4","Le linéaire est :",["Le meuble constitué de linéaires où l'on dispose les produits","Une partie de la gondole où est présenté le produit","L'espace délimité par les gondoles",X],1);
+u("D","TD5 HECM D4","Le facing (frontale) est :",["L'endroit de la gondole qui fait augmenter les ventes","Le nombre d'articles mis en avant d'une marque","Le reflet de ce qu'on trouve dans le magasin",X],1);
+u("D","TD5 HECM D4","La vitrine est :",["L'endroit de la gondole qui fait augmenter les ventes","Le nombre d'articles mis en avant d'une marque","Le reflet de ce qu'on trouve dans le magasin : produits, accueil, choix, prix",X],2);
+v("D","TD8 D1","La zone primaire est composée des ménages situés entre 5 et 10 mn du point de vente.",false,"Primaire : moins de 5 mn. Secondaire : 5 à 10 mn.");
+v("D","TD8 D1","Les courbes isométriques concernent le même temps.",false,"Isométrique = même distance.");
+v("D","TD8 D1","L'accessibilité au magasin dépend du temps et de l'isochrone.",false,"Elle dépend du temps et de la distance (isochrone = temps, isométrique = distance).");
+v("D","TD8 D1","L'évasion désigne les groupes de clients effectuant les achats dans la zone de chalandise étudiée.",false,"Évasion : clients de la zone qui achètent ailleurs.");
+v("D","TD8 D1","L'assortiment est l'ensemble des gammes et articles proposés à la vente par un distributeur à sa clientèle.",true);
+v("D","TD8 D1","La zone secondaire est composée des ménages situés à moins de 5 mn du point de vente.",false,"C'est la zone primaire.");
+v("D","TD8 D1","Les courbes isochroniques concernent la même distance.",false,"Isochrone = même temps.");
+v("D","TD8 D1","L'accessibilité au magasin dépend de la distance et de l'isométrie.",false,"Elle dépend du temps et de la distance.");
+v("D","TD8 D1","L'attraction désigne les groupes de clients effectuant les achats dans les autres zones que la zone de chalandise étudiée.",false,"C'est l'évasion. L'attraction : clients venus d'autres zones.");
+v("D","TD8 D1","L'assortiment est l'ensemble de produits liés entre eux proposés par un producteur.",false,"C'est la gamme (producteur). L'assortiment : distributeur.");
+u("D","TD8 D2","NIDO 1 kg vendu dans 120 supérettes sur 200. Distribution numérique (DN) :",["60 %","40 %","30 %",X],0,"120 / 200.");
+u("D","TD8 D2","CA lait en poudre des 120 supérettes : 250 M ; CA des 200 magasins : 625 M. Distribution valeur (DV) :",["60 %","40 %","25 %",X],1,"250 / 625.");
+u("D","TD8 D2","DV (40 %) inférieure à DN (60 %) : la boîte de NIDO 1 kg est surtout vendue :",["Par les gros points de vente","Par les petits commerçants","Par les hypermarchés",X],1);
+u("D","TD8 D3","Stock A à H (CA en milliers : 1 300, 1 100, 200, 110, 100, 90, 70, 30). Quelles références font 80 % du CA ?",["A et B","A, B et C","A seulement",X],0,"43,33 % + 36,67 % = 80 %, pour 20 % des unités (450 + 550 sur 5 000).");
+u("D","TD8 D4 CMAF","Revenu global annuel : 27 420 000 000 + 20 % de transferts. Revenu global disponible :",["27 420 000 000","32 904 000 000","23 032 800 000",X],1,"27 420 000 000 × 1,2.");
+u("D","TD8 D4 CMAF","Dépenses non alimentaires = 13 819 680 000. Évasion (15 %) :",["2 072 952 000","2 763 936 000","3 627 666 000",X],0,"13 819 680 000 × 0,15.");
+u("D","TD8 D4 CMAF","Même base. Attraction (20 %) :",["2 072 952 000","2 763 936 000","3 627 666 000",X],1,"13 819 680 000 × 0,20.");
+u("D","TD8 D4 CMAF","Marché potentiel 14 510 664 000 ; pénétration 25 %. CA prévisionnel arrondi à la dizaine de milliers inférieure :",["3 627 666 000","3 627 660 000","3 627 600 000",X],1,"MP = 13 819 680 000 − évasion + attraction. 3 627 666 000 devient 3 627 660 000.");
+
+/* ===== STRATEGIE ET ETUDES ===== */
+u("S","TD5 HECM D1","Le prix psychologique est le prix :",["Maximisant le chiffre d'affaires","Maximisant le nombre de clients","Maximisant toujours le nombre de clients et le chiffre d'affaires",X],1);
+u("S","TD5 HECM D1","La matrice BCG permet d'analyser :",["Le personnel","Le portefeuille de clients","Le portefeuille de produits",X],2);
+u("S","TD5 HECM D1","Un produit vache à lait a :",["Un taux de croissance élevé et une PMR élevée","Un taux de croissance élevé et une PMR faible","Un taux de croissance faible et une PMR élevée",X],2);
+m("S","TD5 HECM D1","Les 5 forces de Porter sont :",["Produits de substitution","Concurrents","Fournisseurs","Clients","Nouveaux entrants","État","Les 4 P"],[0,1,2,3,4]);
+u("S","TD5 HECM D1","Le taux de marque exprime :",["Marge / prix d'achat","Marge / prix de vente","Toutes les réponses",X],1);
+u("S","TD Kdi","Produit A : ventes 200 → 230 ; leader du marché à 288. Taux de croissance et PMR :",["15 % et 0,80","8 % et 1,8","5 % et 0,5",X],0,"30 / 200 ; 230 / 288.");
+u("S","TD Kdi","Produits A (TC 15 %, PMR 0,80), B (8 %, 1,8), C (5 %, 0,5), D (12 %, 1,49). Positions BCG :",["A dilemme, B vache à lait, C poids mort, D star","A star, B dilemme, C vache à lait, D poids mort","A poids mort, B star, C dilemme, D vache à lait",X],0,"Seuils : croissance 10 %, PMR 1.");
+u("S","TD Cycle de vie","CA (×10³) 2000 à 2005 : 25, 35, 40, 50, 50, 30. En 2004 le produit est en phase de :",["Lancement","Croissance","Maturité","Déclin"],2,"Les ventes plafonnent à 50.");
+u("S","TD Cycle de vie","Cycle de vie vers BCG : lancement, croissance, maturité, déclin =",["Dilemme, star, vache à lait, poids mort","Star, dilemme, poids mort, vache à lait","Vache à lait, star, dilemme, poids mort",X],0);
+u("S","TD Segmentation","Arborescence : zone d'habitation (rurale, urbaine), sexe (H, F), catégorie socio-professionnelle (3). Nombre de segments :",["7","12","6",X],1,"2 × 2 × 3 = 12 segments sur 3 niveaux.");
+u("S","TD 20/80","Références OAB4 40, OBC12 35, OA11 10, OCB11 8, OA15 7 (×10³). La loi des 20/80 est-elle vérifiée ?",["Oui : 20 % des références font 80 % du CA","Non : 20 % des références (OAB4) ne font que 40 % du CA","Oui : 40 % des références font 75 %",X],1,"Les 2 premières références (40 %) font 75 % du CA.");
+u("S","TD Produit","Les stratégies produit sont :",["Innovation, imitation, différenciation","Indifférencier, différencier, concentrer","Psychose, puissance, synergie",X],0,"« Indifférencier, différencier, concentrer » = stratégies liées à la segmentation.");
+u("S","TD Médiaplanning","Taux d'affinité d'un support =",["Audience utile / audience totale × 100","Coût / audience utile × 1 000","Audience totale / audience utile",X],0);
+u("S","TD Médiaplanning","Coût pour mille contacts utiles (CMCU) =",["Coût de la publicité / audience utile × 1 000","Audience utile / audience totale × 100","Coût × audience utile / 1 000",X],0);
+v("S","Études de marché","Le panel est un échantillon permanent sur lequel on mène différentes études à intervalles réguliers.",true);
+v("S","Études de marché","Le recensement est une étude menée sur un échantillon de la population.",false,"Recensement : population entière. Sondage : échantillon.");
+v("S","Études de marché","Le tri croisé renseigne sur les réponses à une seule question.",false,"C'est le tri à plat. Le tri croisé croise deux questions.");
+v("S","TD5 HECM D1","Le prix psychologique maximise le chiffre d'affaires.",false,"Il maximise le nombre de clients.");
+
+/* ===== APPLICATION ===== */
+const app=document.getElementById("app");let S={},sel="all",typ="all",cnt="20";
+const ls={g(k){try{return JSON.parse(localStorage.getItem(k))}catch(e){return null}},s(k,x){try{localStorage.setItem(k,JSON.stringify(x))}catch(e){}}};
+const EK="sp3_err",errs=()=>ls.g(EK)||[];
+const h=(t,c,x,f)=>{const e=document.createElement(t);if(c)e.className=c;if(x!=null)e.textContent=x;if(f)e.onclick=f;return e};
+const shuf=a=>{a=a.slice();for(let i=a.length-1;i>0;i--){const j=Math.random()*(i+1)|0;[a[i],a[j]]=[a[j],a[i]]}return a};
+const sk=(l,opts,get,set)=>{const s=document.createElement("select");opts.forEach(([v,t])=>{const o=h("option",0,t);o.value=v;if(v==get())o.selected=true;s.append(o)});s.onchange=()=>set(s.value);return s};
+const fill=(t,o,a)=>{let j=0;return t.replace(/\{\}/g,()=>o[a[j++]])};
+const ansTxt=q=>q.k=="f"?fill(q.tpl,q.o,q.alts[0]):q.a.map(k=>q.o[k]).join(" ; ");
+function askF(c,q,id){
+ const line=h("p","q"),sels=[],parts=q.tpl.split("{}");
+ parts.forEach((p,j)=>{line.append(document.createTextNode(p));if(j<parts.length-1){const s=document.createElement("select");s.style.cssText="width:auto;max-width:100%;margin:4px 2px";const z=h("option",0,"…");z.value="";s.append(z);q.o.forEach((t,k)=>{const o=h("option",0,t);o.value=k;s.append(o)});sels.push(s);line.append(s)}});
+ c.append(line);
+ const b=h("button","p","Valider",()=>{
+  const p=sels.map(s=>s.value);if(p.some(x=>x===""))return;const n=p.map(Number);
+  const ok=q.alts.some(a=>a.every((x,j)=>x==n[j]));
+  sels.forEach((s,j)=>{s.disabled=true;s.style.border="2px solid "+(q.alts.some(a=>a[j]==n[j])?"var(--ok)":"var(--ko)")});
+  b.remove();let e=errs();if(ok){S.ok++;e=e.filter(x=>x!=id)}else{S.bad.push(id);if(!e.includes(id))e.push(id)}ls.s(EK,e);
+  c.append(h("div","ex",(ok?"Correct. ":"Faux. ")+"Formule : "+ansTxt(q)+(q.e?" — "+q.e:"")),h("button","p",S.n+1<S.ids.length?"Question suivante":"Voir le résultat",()=>{S.n++;S.n<S.ids.length?ask():end()}));
+ });
+ c.append(b);app.append(c);
+}
+function home(){
+ app.replaceChildren(h("h1",0,"Quiz Spécialité"),h("p","s","Questions tirées de tes TD : "+Q.length+" au total (QCU, QCM, Vrai/Faux). Tes erreurs sont mémorisées sur cet appareil."));
+ const c=h("div","card");c.append(h("div","meta","Thème"));
+ [["all","Tous ("+Q.length+")"],...Object.keys(T).map(k=>[k,T[k]+" ("+Q.filter(q=>q.t==k).length+")"]),["err","Mes erreurs ("+errs().length+")"]].forEach(([k,l])=>c.append(h("button",sel==k?"sel":"",l,()=>{sel=k;home()})));
+ c.append(h("div","meta","Type de question"),sk(0,[["all","Tous les types"],["c","Choisir la formule"],["f","Formule à compléter"],["e","Repérer l'erreur"],["u","QCU"],["m","QCM (plusieurs réponses)"],["v","Vrai / Faux"]],()=>typ,x=>typ=x),
+  h("div","meta","Nombre de questions"),sk(0,[["10","10"],["20","20"],["30","30 (épreuve blanche)"],["999","Toutes"]],()=>cnt,x=>cnt=x),h("button","p","Commencer",start));
+ app.append(c);
+}
+function start(){
+ let ids=Q.map((_,i)=>i).filter(i=>(sel=="all"||(sel=="err"?errs().includes(i):Q[i].t==sel))&&(typ=="all"||(Q[i].y||Q[i].k)==typ));
+ if(!ids.length){alert("Aucune question pour ce choix.");return}
+ S={ids:shuf(ids).slice(0,+cnt),n:0,ok:0,bad:[]};ask();
+}
+function ask(){
+ const id=S.ids[S.n],q=Q[id];app.replaceChildren();
+ const bar=h("div","bar"),i=document.createElement("i");i.style.width=(S.n/S.ids.length*100)+"%";bar.append(i);
+ app.append(h("div","meta",(S.n+1)+"/"+S.ids.length+" · "+T[q.t]+" · "+q.s+" · "+K[q.y||q.k]),bar);
+ const c=h("div","card");c.append(h("p","q",q.q));if(q.k=="m")c.append(h("div","meta","Coche toutes les bonnes réponses, puis valide."));
+ if(q.k=="f"){askF(c,q,id);return}
+ let done=false;const pk=new Set();let val;
+ const bs=q.o.map((o,k)=>h("button","",(q.k=="v"?"":String.fromCharCode(97+k)+") ")+o,()=>{
+  if(done)return;
+  if(q.k=="m"){pk.has(k)?pk.delete(k):pk.add(k);bs[k].classList.toggle("sel")}else fin([k]);
+ }));
+ bs.forEach(b=>c.append(b));
+ function fin(p){
+  done=true;if(val)val.remove();
+  const ok=p.length==q.a.length&&p.every(x=>q.a.includes(x));
+  bs.forEach((b,k)=>{b.classList.remove("sel");if(q.a.includes(k))b.classList.add("ok");else if(p.includes(k))b.classList.add("ko")});
+  let e=errs();if(ok){S.ok++;e=e.filter(x=>x!=id)}else{S.bad.push(id);if(!e.includes(id))e.push(id)}ls.s(EK,e);
+  c.append(h("div","ex",(ok?"Correct. ":"Faux. ")+"Réponse : "+ansTxt(q)+(q.e?" — "+q.e:"")),
+   h("button","p",S.n+1<S.ids.length?"Question suivante":"Voir le résultat",()=>{S.n++;S.n<S.ids.length?ask():end()}));
+ }
+ if(q.k=="m"){val=h("button","p","Valider",()=>{if(!done&&pk.size)fin([...pk])});c.append(val)}
+ app.append(c);
+}
+function end(){
+ app.replaceChildren();const p=Math.round(S.ok/S.ids.length*100),c=h("div","card");
+ c.append(h("div","meta","Résultat"),h("div","big",S.ok+" / "+S.ids.length+" ("+p+" %)"),h("p","s",p>=80?"Solide. Refais tes erreurs restantes.":p>=60?"Correct. Refais tes erreurs.":"À retravailler : relis les corrigés puis recommence."));
+ if(S.bad.length){c.append(h("div","meta","À revoir"));S.bad.forEach(i=>{const q=Q[i],e=h("div","err");e.append(h("b",0,q.q),h("div",0,"Réponse : "+ansTxt(q)+(q.e?" — "+q.e:"")));c.append(e)})}
+ c.append(h("button","p","Refaire mes erreurs",()=>{sel="err";typ="all";start()}),h("button",0,"Accueil",home));app.append(c);
+}
+home();
+</script></body></html>
